@@ -1,3 +1,7 @@
+from math import inf
+from copy import deepcopy
+
+
 class ContainerStones:
     def __init__(self,index, num_stones=None, type=None):
         self.index = index
@@ -44,6 +48,33 @@ class Mancala:
 
         self.finish = False
 
+    @classmethod
+    def assessment_state(cls, mancala):
+        return mancala.player_b.containers[-1].num_stones - mancala.player_a.containers[-1].num_stones
+
+    def minimax(self, state, depth, player='b'):
+        if depth == 0:
+            assessment = self.assessment_state(mancala=state)
+            print(assessment)
+            return assessment
+        if player == 'b':
+            value = max([self.minimax(state_child, depth - 1, player=state_child.whose_move.id) for state_child in self.get_possible_states(state)])
+            return value
+        else: #minimize
+            value = min([self.minimax(state_child, depth - 1, player=state_child.whose_move.id) for state_child in self.get_possible_states(state)])
+            return value
+
+
+    @classmethod
+    def get_possible_states(cls, mancala_state):
+        states = []
+        for index in range(len(mancala_state.whose_move.containers) - 1):
+            if mancala_state.whose_move.containers[index].num_stones > 0:
+                state_append = deepcopy(mancala_state)
+                state_append.step(index)
+                states.append(state_append)
+        return states
+
 
     def step_player(self, container_ind, person_letter):
         if person_letter == self.whose_move.id:
@@ -53,7 +84,7 @@ class Mancala:
 
     def step(self, container_ind):
         if container_ind == 6 or self.whose_move.containers[container_ind].num_stones == 0:
-            return
+            return False
         current_player = self.whose_move
         stones_num = current_player.containers[container_ind].num_stones
         current_player.containers[container_ind].num_stones = 0
@@ -103,4 +134,9 @@ class Mancala:
             another_player.containers[index].num_stones = 0
         another_player.containers[-1].num_stones += to_add
         self.finish = True
+
+
+if __name__ == "__main__":
+    mancala = Mancala()
+    print(mancala.minimax(state=mancala, depth=6, player='b'))
 
