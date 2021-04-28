@@ -44,6 +44,7 @@ class Mancala:
 
         self.finish = False
 
+
     def step_player(self, container_ind, person_letter):
         if person_letter == self.whose_move.id:
             self.step(container_ind)

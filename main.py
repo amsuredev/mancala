@@ -7,7 +7,7 @@ class GameUi(QtWidgets.QMainWindow):
     def __init__(self):
         self.__mancala = Mancala()
         super(GameUi, self).__init__()
-        uic.loadUi(r'C:\\Studing\\6sem\\SI\\cw3_ui.ui', self)
+        uic.loadUi(r'cw3_ui.ui', self)
         self.a_studnia.mousePressEvent = self.clicked_studnia_a
         self.a_0.mousePressEvent = self.clicked_a0
         self.a_1.mousePressEvent = self.clicked_a1
@@ -23,6 +23,13 @@ class GameUi(QtWidgets.QMainWindow):
         self.b_3.mousePressEvent = self.clicked_b3
         self.b_4.mousePressEvent = self.clicked_b4
         self.b_5.mousePressEvent = self.clicked_b5
+
+        self.start_game.mousePressEvent = self.start_new_game
+
+    def start_new_game(self, event):
+        self.__mancala = Mancala()
+        self.__renew_game_state()
+        self.info.setText("Game")
 
     def clicked_studnia_a(self, event):
         print("clicked studnia a")
@@ -111,6 +118,8 @@ class GameUi(QtWidgets.QMainWindow):
 
         if self.__mancala.finish:
             print("finish game")
+            winner = "Player A" if self.__mancala.player_a.containers[-1].num_stones > self.__mancala.player_b.containers[-1].num_stones else "Player B"
+            self.info.setText("{} wins".format(winner))
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
