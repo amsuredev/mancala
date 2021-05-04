@@ -1,5 +1,6 @@
 from math import inf
 from copy import deepcopy
+from math import inf
 
 
 class ContainerStones:
@@ -69,6 +70,35 @@ class Mancala:
             assessment_step = sorted(assessment_step, key=lambda el: el[0], reverse=False)
             return assessment_step[0][0] if current_depth != 0 else assessment_step[0]
 
+    def max_val(self, state, alpha=-inf, beta=+inf, depth=3):
+        if depth == 0:
+            return self.assessment_state(state)
+        val = -inf
+        for state_child, index_container in self.get_possible_states(state):
+            if state_child.whose_move.id == 'a':#minimize
+                new_val = self.min_val(state=state_child, alpha=alpha, beta=beta, depth=depth-1)
+            else:#maximize
+                new_val = self.max_val(state=state_child, alpha=alpha, beta=beta, depth=depth-1)
+            val = new_val if new_val > val else val
+            if new_val >= beta:
+                return val
+            alpha = new_val if new_val > alpha else alpha
+        return val
+
+    def min_val(self, state, alpha=-inf, beta=+inf, depth=3):
+        if depth == 0:
+            return self.assessment_state(state)
+        val = inf
+        for state_child, index_container in self.get_possible_states(state):
+            if state_child.whose_move.id == 'b':#need to maximize
+                new_val = self.max_val(state=state_child, alpha=alpha, beta=beta, depth=depth-1)
+            else:#repeat move
+                new_val = self.min_val(state=state_child, alpha=alpha, beta=beta, depth=depth - 1)
+            val = new_val if new_val < val else val
+            if new_val <= alpha:
+                return val
+            beta = new_val if new_val < beta else beta
+        return val
 
     @classmethod
     def get_possible_states(cls, mancala_state):
@@ -143,5 +173,7 @@ class Mancala:
 
 if __name__ == "__main__":
     mancala = Mancala()
-    #after_move_krotka = mancala.minimax(state=mancala, depth=6, player='b')
-    a = 5
+    depth = 8
+    print(f"assessment of start position minimax depth={depth}: {mancala.minimax(mancala, depth=depth, player='b', current_depth=0)[0]}")
+    #assessment = mancala.max_val(state=mancala, depth=3)
+    print("assessmnt of start position aplhabeta depth={depth}: {assessment}".format(assessment=mancala.max_val(state=mancala, depth=depth), depth=depth))
