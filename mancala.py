@@ -52,17 +52,22 @@ class Mancala:
     def assessment_state(cls, mancala):
         return mancala.player_b.containers[-1].num_stones - mancala.player_a.containers[-1].num_stones
 
-    def minimax(self, state, depth, player='b'):
+    def minimax(self, state, depth, player='b', current_depth=0):
         if depth == 0:
             assessment = self.assessment_state(mancala=state)
-            print(assessment)
             return assessment
-        if player == 'b':
-            value = max([self.minimax(state_child, depth - 1, player=state_child.whose_move.id) for state_child in self.get_possible_states(state)])
-            return value
+        if player == 'b':#max
+            assessment_step = [(self.minimax(state_child, depth - 1, player=state_child.whose_move.id, current_depth=current_depth+1), index) for state_child, index in self.get_possible_states(state)]
+            if not assessment_step:
+                return self.assessment_state(state)
+            assessment_step = sorted(assessment_step, key=lambda el: el[0], reverse=True)
+            return assessment_step[0][0] if current_depth != 0 else assessment_step[0]
         else: #minimize
-            value = min([self.minimax(state_child, depth - 1, player=state_child.whose_move.id) for state_child in self.get_possible_states(state)])
-            return value
+            assessment_step = [(self.minimax(state_child, depth - 1, player=state_child.whose_move.id, current_depth=current_depth+1), index) for state_child, index in self.get_possible_states(state)]
+            if not assessment_step:
+                return self.assessment_state(state)
+            assessment_step = sorted(assessment_step, key=lambda el: el[0], reverse=False)
+            return assessment_step[0][0] if current_depth != 0 else assessment_step[0]
 
 
     @classmethod
@@ -71,8 +76,8 @@ class Mancala:
         for index in range(len(mancala_state.whose_move.containers) - 1):
             if mancala_state.whose_move.containers[index].num_stones > 0:
                 state_append = deepcopy(mancala_state)
-                state_append.step(index)
-                states.append(state_append)
+                if state_append.step(index):
+                    states.append((state_append, index))
         return states
 
 
@@ -100,7 +105,7 @@ class Mancala:
 
         if self.__check_if_end_game():
             self.__finish_game()
-            return
+        return True
 
     def next_container(self, current_player, container):
         container_ind = container.index
@@ -138,5 +143,5 @@ class Mancala:
 
 if __name__ == "__main__":
     mancala = Mancala()
-    print(mancala.minimax(state=mancala, depth=6, player='b'))
-
+    #after_move_krotka = mancala.minimax(state=mancala, depth=6, player='b')
+    a = 5

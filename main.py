@@ -4,7 +4,12 @@ from mancala import Mancala
 
 
 class GameUi(QtWidgets.QMainWindow):
+    HUMAN_VS_HUMAN = 0
+    HUMAN_VS_AI = 1
+    AI_VS_AI = 2
+
     def __init__(self):
+        self.__mode = self.HUMAN_VS_HUMAN
         self.__mancala = Mancala()
         super(GameUi, self).__init__()
         uic.loadUi(r'cw3_ui.ui', self)
@@ -30,6 +35,10 @@ class GameUi(QtWidgets.QMainWindow):
         self.__mancala = Mancala()
         self.__renew_game_state()
         self.info.setText("Game")
+        if str(self.mode.currentText()) == "Human vs Human":
+            self.__mode = self.HUMAN_VS_HUMAN
+        elif str(self.mode.currentText()) == "HUMAN VS AI":
+            self.__mode = self.HUMAN_VS_AI
 
     def clicked_studnia_a(self, event):
         print("clicked studnia a")
@@ -73,31 +82,55 @@ class GameUi(QtWidgets.QMainWindow):
         print("clicked b0")
         self.__mancala.step_player(0, 'b')
         self.__renew_game_state()
+        if self.__mode == self.HUMAN_VS_AI:
+            while self.__mancala.whose_move.id == 'a' and not self.__mancala.finish:
+                self.__get_move_ai()
+        self.__renew_game_state()
 
     def clicked_b1(self, event):
         print("clicked b1")
         self.__mancala.step_player(1, 'b')
+        if self.__mode == self.HUMAN_VS_AI:
+            while self.__mancala.whose_move.id == 'a' and not self.__mancala.finish:
+                self.__get_move_ai()
         self.__renew_game_state()
 
     def clicked_b2(self, event):
         print("clicked b2")
         self.__mancala.step_player(2, 'b')
+        if self.__mode == self.HUMAN_VS_AI:
+            while self.__mancala.whose_move.id == 'a' and not self.__mancala.finish:
+                self.__get_move_ai()
         self.__renew_game_state()
 
     def clicked_b3(self, event):
         print("clicked b3")
         self.__mancala.step_player(3, 'b')
+        if self.__mode == self.HUMAN_VS_AI:
+            while self.__mancala.whose_move.id == 'a' and not self.__mancala.finish:
+                self.__get_move_ai()
         self.__renew_game_state()
 
     def clicked_b4(self, event):
         print("clicked b4")
         self.__mancala.step_player(4, 'b')
+        if self.__mode == self.HUMAN_VS_AI:
+            while self.__mancala.whose_move.id == 'a' and not self.__mancala.finish:
+                self.__get_move_ai()
         self.__renew_game_state()
 
     def clicked_b5(self, event):
         print("clicked b5")
         self.__mancala.step_player(5, 'b')
+        if self.__mode == self.HUMAN_VS_AI:
+            while self.__mancala.whose_move.id == 'a' and not self.__mancala.finish:
+                self.__get_move_ai()
         self.__renew_game_state()
+
+    def __get_move_ai(self, depth=1):
+        _, container_id = self.__mancala.minimax(state=self.__mancala, depth=depth, player='a')#second_player
+        print(f"container: {container_id}")
+        self.__mancala.step_player(container_ind=container_id, person_letter='a')
 
     def __renew_game_state(self):
         self.a_studnia.setText(str(self.__mancala.player_a.containers[6].num_stones))
