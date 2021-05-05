@@ -1,6 +1,7 @@
 from math import inf
 from copy import deepcopy
 from math import inf
+from random import randint
 
 
 class ContainerStones:
@@ -31,6 +32,8 @@ class Player:
 
 
 class Mancala:
+    MINIMAX = "minimax"
+    ALPHABETA = "alphabeta"
     def __init__(self, player_a=None, player_b=None, whose_move=None):
         if player_a is None:
             self.player_a = Player()
@@ -50,11 +53,45 @@ class Mancala:
         self.finish = False
 
     @classmethod
+    def play_alphabeta_minimax(cls, position, depth=5, move_first=ALPHABETA):
+        if move_first == cls.ALPHABETA:
+            while position.whose_move.id == 'b':
+                first_move_index = randint(0, 5)
+                position.step(first_move_index)
+            while position.whose_move.id == 'a':
+                first_move_index = randint(0, 5)
+                position.step(first_move_index)
+
+            while not position.finish:
+                while position.whose_move.id == 'b' and not position.finish:
+                    move_alpha_beta = position.max_val(position)[1]
+                    position.step(move_alpha_beta)
+                while position.whose_move.id == 'a' and not position.finish:
+                    move_minimax = position.max_val(position)[1]
+                    position.step(move_minimax)
+            winner_name, assessment = position.winner(move_first, position.assessment_state(position)), position.assessment_state(position)
+            print(f"the winner is {winner_name} with assessment {assessment}")
+
+    def winner(self, move_first, assessment):
+        if assessment == 0:
+            return "None"
+        if move_first == self.ALPHABETA:
+            if assessment > 0:
+                return self.ALPHABETA
+            else:
+                return self.MINIMAX
+        else:
+            if assessment > 0:
+                return self.MINIMAX
+            else:
+                return self.ALPHABETA
+
+    @classmethod
     def assessment_state(cls, mancala):
         return mancala.player_b.containers[-1].num_stones - mancala.player_a.containers[-1].num_stones
 
     def minimax(self, state, depth, player='b', current_depth=0):
-        if depth == 0:
+        if depth == 0 or state.__finish_game():
             assessment = self.assessment_state(mancala=state)
             return assessment
         if player == 'b':#max
@@ -70,35 +107,44 @@ class Mancala:
             assessment_step = sorted(assessment_step, key=lambda el: el[0], reverse=False)
             return assessment_step[0][0] if current_depth != 0 else assessment_step[0]
 
-    def max_val(self, state, alpha=-inf, beta=+inf, depth=3):
-        if depth == 0:
+    def max_val(self, state, alpha=-inf, beta=+inf, depth=3, current_depth=0):
+        if depth == 0 or state.__finish_game():
             return self.assessment_state(state)
         val = -inf
+        index = -2
         for state_child, index_container in self.get_possible_states(state):
             if state_child.whose_move.id == 'a':#minimize
-                new_val = self.min_val(state=state_child, alpha=alpha, beta=beta, depth=depth-1)
+                new_val = self.min_val(state=state_child, alpha=alpha, beta=beta, depth=depth-1, current_depth=current_depth + 1)
             else:#maximize
-                new_val = self.max_val(state=state_child, alpha=alpha, beta=beta, depth=depth-1)
+                new_val = self.max_val(state=state_child, alpha=alpha, beta=beta, depth=depth-1, current_depth=current_depth + 1)
+            if depth == 2 or type(new_val) == tuple:
+                deb_mes = 'debug_mes'
+            if new_val > val:
+                index = index_container
+                val = new_val
             val = new_val if new_val > val else val
             if new_val >= beta:
-                return val
+                return (val, index) if current_depth == 0 else val
             alpha = new_val if new_val > alpha else alpha
-        return val
+        return (val, index) if current_depth == 0 else val
 
-    def min_val(self, state, alpha=-inf, beta=+inf, depth=3):
+    def min_val(self, state, alpha=-inf, beta=+inf, depth=3, current_depth=0):
         if depth == 0:
             return self.assessment_state(state)
         val = inf
+        index = -2
         for state_child, index_container in self.get_possible_states(state):
             if state_child.whose_move.id == 'b':#need to maximize
-                new_val = self.max_val(state=state_child, alpha=alpha, beta=beta, depth=depth-1)
+                new_val = self.max_val(state=state_child, alpha=alpha, beta=beta, depth=depth-1, current_depth=current_depth + 1)
             else:#repeat move
-                new_val = self.min_val(state=state_child, alpha=alpha, beta=beta, depth=depth - 1)
-            val = new_val if new_val < val else val
+                new_val = self.min_val(state=state_child, alpha=alpha, beta=beta, depth=depth-1, current_depth=current_depth + 1)
+            if new_val < val:
+                index = index_container
+                val = new_val
             if new_val <= alpha:
-                return val
+                return (val, index) if current_depth == 0 else val
             beta = new_val if new_val < beta else beta
-        return val
+        return (val, index) if current_depth == 0 else val
 
     @classmethod
     def get_possible_states(cls, mancala_state):
@@ -171,9 +217,12 @@ class Mancala:
         self.finish = True
 
 
+
+
 if __name__ == "__main__":
     mancala = Mancala()
-    depth = 8
-    print(f"assessment of start position minimax depth={depth}: {mancala.minimax(mancala, depth=depth, player='b', current_depth=0)[0]}")
+    depth = 7
+    #print(f"assessment of start position minimax depth={depth}: {mancala.minimax(mancala, depth=depth, player='b', current_depth=0)}")
     #assessment = mancala.max_val(state=mancala, depth=3)
-    print("assessmnt of start position aplhabeta depth={depth}: {assessment}".format(assessment=mancala.max_val(state=mancala, depth=depth), depth=depth))
+    #print("assessmnt of start position aplhabeta depth={depth}: {assessment}".format(assessment=mancala.max_val(state=mancala, depth=depth), depth=depth))
+    mancala.play_alphabeta_minimax(position=mancala,depth=depth)
